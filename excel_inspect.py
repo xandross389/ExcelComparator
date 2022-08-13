@@ -1,7 +1,7 @@
 import argparse
 from os import remove
 import os.path
-from openpyxl.workbook import Workbook
+from openpyxl import Workbook
 from openpyxl import load_workbook
 
 parser = argparse.ArgumentParser(description="Excel differeces finder",
@@ -56,24 +56,21 @@ else:
     if col.value:
       coll_B.append(col.value)
 
+coll_A_B = list(set(coll_A).difference(set(coll_B)))
+coll_B_A = list(set(coll_B).difference(set(coll_A)))
+coll_sames = list(set(coll_A).intersection(coll_B))
+
 if verbose:
   print(f"\nset A ({len(coll_A)} items)")
   print(coll_A)
   print(f"\nset B ({len(coll_B)} items)")
   print(coll_B)
-
   print("\nDifference A - B" )
-  coll_A_B = list(set(coll_A).difference(set(coll_B)))
   print(coll_A_B)
-
   print("\nDifference B - A")
-  coll_B_A = list(set(coll_B).difference(set(coll_A)))
   print(coll_B_A)
-
-  coll_sames = list(set(coll_A).intersection(coll_B))
   print(f"\nEquality A = B ({len(coll_sames)} items)")
   print(coll_sames)
-
 
 if ofilename != "":
   if ofilename.endswith('.txt'):
@@ -113,27 +110,29 @@ if ofilename != "":
           remove(ofilename) 
 
         outbook = Workbook()
+        
         outsheet = outbook.active
+        outsheet.title = "Results"
 
         # Difference A - B
-        for i in range(0, len(coll_A_B)):
-          if i == 0:
-            outsheet[f"A{i+1}"] = "Difference A - B"
-          else:
-            outsheet[f"A{i+1}"] = coll_A_B[i]
+        nrow = 1
+        outsheet.cell(row=nrow, column=1).value = "Difference A - B"
+        for value in coll_A_B:
+          nrow += 1
+          outsheet.cell(row=nrow, column=1).value = str(value)
 
         # Difference B - A
-        for i in range(0, len(coll_B_A)):
-          if i == 0:
-            outsheet[f"B{i+1}"] = "Difference B - A"
-          else:
-            outsheet[f"B{i+1}"] = coll_B_A[i]
-
-        # Equality A = B
-        for i in range(0, len(coll_sames)):
-          if i == 0:
-            outsheet[f"C{i+1}"] = "Equality A = B"
-          else:
-            outsheet[f"C{i+1}"] = coll_sames[i]     
+        nrow = 1
+        outsheet.cell(row=nrow, column=2).value = "Difference B - A"
+        for value in coll_B_A:
+          nrow += 1
+          outsheet.cell(row=nrow, column=2).value = str(value)
+        
+        # # Equality A = B
+        nrow = 1
+        outsheet.cell(row=nrow, column=3).value = "Equality A = B"
+        for value in coll_sames:
+          nrow += 1
+          outsheet.cell(row=nrow, column=3).value = str(value)
         
         outbook.save(filename=ofilename)
